@@ -27,10 +27,7 @@
 # print r
 # print options
 
-import zeep
-from zeep import Client
-from zeep import xsd
-
+from pyOPC.gritty_soap import Client
 #from PyOPC.OPCContainers import *
 #from PyOPC.XDAClient import XDAClient
 #import pysimplesoap
@@ -48,7 +45,7 @@ address='http://BIW1-BPL010RB1:8081/DA'
 
 print("***********************")
 
-client = Client(wsdl="OpcXMLDaServer.asmx", service_name='OpcXmlDA', address = 'BIW1-BPL010RB1', port_name='BIW1-BPL010RB1')
+client = Client(wsdl="OpcXMLDaServer.asmx", service_name='OpcXmlDA', port_name='BIW1-BPL010RB1')
 
 print("********************")
 print (client.service.GetStatus())

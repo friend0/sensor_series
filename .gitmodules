@@ -1,0 +1,3 @@
+[submodule "python-zeep"]
+	path = python-zeep
+	url = https://mvantellingen@github.com/mvantellingen/python-zeep.git
