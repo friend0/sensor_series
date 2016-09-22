@@ -3,6 +3,7 @@ import logging
 from gritty_soap.transports import Transport
 from gritty_soap.wsdl import Document
 
+
 NSMAP = {
     'xsd': 'http://www.w3.org/2001/XMLSchema',
     'soap': 'http://schemas.xmlsoap.org/wsdl/soap/',

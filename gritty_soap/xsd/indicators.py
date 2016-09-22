@@ -8,7 +8,7 @@ from cached_property import threaded_cached_property
 
 from gritty_soap.xsd.elements import Any, Base, Element
 from gritty_soap.xsd.utils import (
-    NamePrefixGenerator, UniqueNameGenerator, max_occurs_iter)
+
 
 __all__ = ['All', 'Choice', 'Group', 'Sequence']
 

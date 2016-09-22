@@ -10,6 +10,7 @@ from gritty_soap.helpers import serialize_object
 from gritty_soap.utils import as_qname
 from gritty_soap.wsdl.utils import etree_to_string
 
+
 SerializedMessage = namedtuple('SerializedMessage', ['path', 'headers', 'content'])
 
 

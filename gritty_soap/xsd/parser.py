@@ -8,6 +8,7 @@ from gritty_soap.exceptions import XMLSyntaxError
 from gritty_soap.parser import absolute_location
 
 
+
 class ImportResolver(etree.Resolver):
     def __init__(self, transport, parser_context):
         self.parser_context = parser_context

@@ -9,6 +9,7 @@ from gritty_soap.wsdl.messages import DocumentMessage, RpcMessage
 from gritty_soap.wsdl.utils import etree_to_string
 
 
+
 class SoapBinding(Binding):
     """Soap 1.1/1.2 binding"""
 

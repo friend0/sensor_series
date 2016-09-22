@@ -12,6 +12,7 @@ from gritty_soap.xsd.utils import NamePrefixGenerator
 from gritty_soap.xsd.valueobjects import CompoundValue
 
 
+
 class Type(object):
 
     def __init__(self, qname=None, is_global=False):

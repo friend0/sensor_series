@@ -8,6 +8,7 @@ from gritty_soap.xsd import builtins as xsd_builtins
 from gritty_soap.xsd.context import ParserContext
 from gritty_soap.xsd.visitor import SchemaVisitor
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -6,6 +6,7 @@ from lxml.builder import ElementMaker
 from gritty_soap.plugins import Plugin
 from gritty_soap.wsdl.utils import get_or_create_header
 
+
 WSA = ElementMaker(namespace='http://www.w3.org/2005/08/addressing')
 
 

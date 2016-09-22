@@ -9,6 +9,7 @@ from urllib.parse import urljoin, urlparse
 from gritty_soap.exceptions import XMLSyntaxError
 
 
+
 def parse_xml(content, base_url=None, recover=False):
     parser = etree.XMLParser(remove_comments=True, recover=recover)
     try:

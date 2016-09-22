@@ -6,6 +6,7 @@ from gritty_soap.utils import qname_attr
 from gritty_soap.wsdl import messages
 from gritty_soap.wsdl.definitions import Binding, Operation
 
+
 NSMAP = {
     'http': 'http://schemas.xmlsoap.org/wsdl/http/',
     'wsdl': 'http://schemas.xmlsoap.org/wsdl/',

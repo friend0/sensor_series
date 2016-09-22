@@ -67,6 +67,7 @@ from gritty_soap.xsd.types import SimpleType
 from gritty_soap.xsd.valueobjects import AnyObject
 
 
+
 class ParseError(ValueError):
     pass
 

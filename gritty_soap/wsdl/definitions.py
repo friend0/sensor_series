@@ -5,6 +5,7 @@ from six import python_2_unicode_compatible
 
 from gritty_soap.utils import qname_attr
 
+
 NSMAP = {
     'wsdl': 'http://schemas.xmlsoap.org/wsdl/',
     'wsaw': 'http://www.w3.org/2006/05/addressing/wsdl',

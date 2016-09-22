@@ -3,6 +3,7 @@ from collections import OrderedDict
 from gritty_soap.xsd.valueobjects import CompoundValue
 
 
+
 def serialize_object(obj):
     """Serialize gritty_soap objects to native python data structures"""
     if obj is None:

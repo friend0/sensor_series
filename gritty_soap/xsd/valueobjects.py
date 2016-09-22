@@ -5,6 +5,7 @@ import six
 from gritty_soap.xsd.indicators import Indicator
 from gritty_soap.xsd.printer import PrettyPrinter
 
+
 __all__ = ['AnyObject', 'CompoundValue']
 
 

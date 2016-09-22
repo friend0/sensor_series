@@ -8,6 +8,7 @@ from gritty_soap.xsd.context import XmlParserContext
 from gritty_soap.xsd.utils import max_occurs_iter
 
 
+
 class Base(object):
 
     @property

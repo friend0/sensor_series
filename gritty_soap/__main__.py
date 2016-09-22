@@ -6,9 +6,15 @@ import logging.config
 import time
 from six.moves.urllib.parse import urlparse
 
+<<<<<<< HEAD
 from gritty_soap.cache import InMemoryCache, SqliteCache
 from gritty_soap.client import Client
 from gritty_soap.transports import Transport
+=======
+from zeep.cache import InMemoryCache, SqliteCache
+from zeep.client import Client
+from zeep.transports import Transport
+>>>>>>> 0dd844b72326a5dc6c7b568bbf0813a6c6122aec
 
 logger = logging.getLogger('gritty_soap')
 

@@ -13,6 +13,7 @@ from gritty_soap.wsdl import definitions, http, soap
 from gritty_soap.xsd import Schema
 from gritty_soap.xsd.context import ParserContext
 
+
 NSMAP = {
     'wsdl': 'http://schemas.xmlsoap.org/wsdl/',
 }
