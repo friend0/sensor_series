@@ -137,8 +137,10 @@ class SimpleType(Type):
         return self.pythonvalue(xmlelement.text)
 
     def pythonvalue(self, xmlvalue):
-        raise NotImplementedError(
-            '%s.pytonvalue() not implemented' % self.__class__.__name__)
+        #todo: need to see if this causes any problems! currently, looks like this only gets called in GetProperties
+
+        return xmlvalue
+        #raise NotImplementedError('%s.pythonvalue() not implemented' % self.__class__.__name__)
 
     def render(self, parent, value):
         parent.text = self.xmlvalue(value)
@@ -253,8 +255,7 @@ class ComplexType(Type):
             result.append((generator.get_name(), self._element))
         return result
 
-    def parse_xmlelement(self, xmlelement, schema, allow_none=True,
-                         context=None):
+    def parse_xmlelement(self, xmlelement, schema, allow_none=True, context=None):
         """Consume matching xmlelements and call parse() on each"""
         # If this is an empty complexType (<xsd:complexType name="x"/>)
         if not self.attributes and not self.elements:

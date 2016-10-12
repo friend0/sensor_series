@@ -1,5 +1,5 @@
 import pkg_resources
-from xml import etree
+from lxml import etree
 
 
 class _NotSetClass(object):

@@ -663,13 +663,10 @@
   </wsdl:binding>
   <wsdl:service name="OpcXmlDA">
     <wsdl:port name="OpcXmlDASoap" binding="tns:OpcXmlDASoap">
-      <soap:address location="http://BIW1-BPL010RB1:8081/DA" />
+      <soap:address location="http://172.16.22.101:8081/DA" />
     </wsdl:port>
     <wsdl:port name="OpcXmlDASoap12" binding="tns:OpcXmlDASoap12">
-      <soap12:address location="http://BIW1-BPL010RB1:8081/DA" />
-    </wsdl:port>
-    <wsdl:port name="BIW1-BPL010RB1" binding="tns:OpcXmlDASoap">
-      <soap12:address location="http://BIW1-BPL010RB1:8081/DA" />
+      <soap12:address location="http://172.16.22.101:8081/DA" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

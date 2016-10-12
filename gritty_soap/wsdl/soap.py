@@ -1,4 +1,4 @@
-from xml import etree
+from lxml import etree
 
 from gritty_soap import plugins, wsa
 from gritty_soap.exceptions import Fault, TransportError, XMLSyntaxError
@@ -7,8 +7,6 @@ from gritty_soap.utils import qname_attr
 from gritty_soap.wsdl.definitions import Binding, Operation
 from gritty_soap.wsdl.messages import DocumentMessage, RpcMessage
 from gritty_soap.wsdl.utils import etree_to_string
-
-
 
 class SoapBinding(Binding):
     """Soap 1.1/1.2 binding"""
@@ -120,6 +118,10 @@ class SoapBinding(Binding):
         :type response: requests.Response
 
         """
+        from lxml import etree, html
+        doc_root = html.fromstring(response.content)
+        #print(etree.tostring(doc_root, encoding='unicode', pretty_print=True))
+
         if response.status_code != 200 and not response.content:
             raise TransportError(
                 u'Server returned HTTP status %d (no content available)'
