@@ -4,12 +4,17 @@ from abc import ABCMeta, abstractmethod
 class BaseClient(metaclass=ABCMeta):
 
     @abstractmethod
-    def browse(self):
-        pass
-    @abstractmethod
-    def read(self):
+    def status(self):
         pass
 
     @abstractmethod
-    def subscribe(self, polled=False):
+    def browse(self, item_name=None):
+        pass
+
+    @abstractmethod
+    def read(self, item_name):
+        pass
+
+    @abstractmethod
+    def subscribe(self, item_name, server_handle):
         pass
