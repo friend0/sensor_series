@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import requests
 from clients.client import BaseClient
-# from
 
 class FanucClient(BaseClient):
 
