@@ -1,6 +1,6 @@
-from gritty_soap import Client
+#from gritty_soap import Client
 from clients.client import BaseClient
-from clients.kuka_client import KukaClient
+#from clients.kuka_client import KukaClient
 import socket
 
 class MulticastSocket(socket.socket):
@@ -15,22 +15,6 @@ class MulticastSocket(socket.socket):
     def mcast_add(self, addr, iface):
         self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
                         socket.inet_aton(addr) + socket.inet_aton(iface))
-
-# context = zmq.Context()
-# sock = context.socket(zmq.SUB)
-
-kuka_client = KukaClient()
-
-ret_val = kuka_client.status()
-print(ret_val)
-ret_val = kuka_client.browse()
-print(ret_val)
-ret_val = kuka_client.get_properties()
-print(ret_val)
-ret_val = kuka_client.read('TipDressCounter')
-print(ret_val)
-ret_val = kuka_client.subscribe('TipDressCounter', None)
-print(ret_val)
 
 multi_socket = MulticastSocket(local_port=2222)
 multi_socket.mcast_add('239.192.77.128', '172.16.22.1')
@@ -57,6 +41,7 @@ multi_socket.mcast_add('239.192.77.130', '127.0.0.1')
 # sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
 while True:
-    data, address = multi_socket.recv(1024)
-    print(multi_socket.recv(10240))
+    bdata = multi_socket.recv(4096)
+    data = bdata()
+    print(data)
 
