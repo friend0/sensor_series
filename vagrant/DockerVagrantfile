@@ -1,0 +1,58 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# conda create --name opc python=3.5
+
+# All Vagrant configuration is done below
+Vagrant.configure("2") do |config|
+
+    # Every Vagrant development environment requires a box. You can search for
+    # boxes at https://atlas.hashicorp.com/search.
+    # config.vm.base_mac = "080027187600"
+    config.vm.define "vagrant-ubuntu1404x64"
+    config.vm.box = "puphpet/ubuntu1404-x64"
+
+    #config.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
+    #config.vm.network :forwarded_port, guest: 22, host: 2223, auto_correct: true
+
+    #config.vm.network "forwarded_port", id: "ssh", guest: 22, host: 2223, auto_correct: true
+    #config.ssh.host = "localhost"
+    #config.ssh.port = 2223
+
+    #config.vm.provider "docker" do |d|
+    #  d.image = "foo/bar"
+    #end
+
+    config.vm.provider :virtualbox do |v, override|
+        v.gui = true
+        v.customize ["modifyvm", :id, "--memory", 2048]
+        v.customize ["modifyvm", :id, "--cpus", 1]
+        v.customize ["modifyvm", :id, "--vram", "256"]
+        v.customize ["setextradata", "global", "GUI/MaxGuestResolution", "any"]
+        v.customize ["setextradata", :id, "CustomVideoMode1", "1024x768x32"]
+        v.customize ["modifyvm", :id, "--ioapic", "on"]
+        v.customize ["modifyvm", :id, "--rtcuseutc", "on"]
+        v.customize ["modifyvm", :id, "--accelerate3d", "on"]
+        v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    end
+
+    # Enable provisioning with a shell script. Additional provisioners such as
+    # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+    # documentation for more information about their specific syntax and use.
+    #config.vm.provision "shell", inline: $conda_installation
+
+    config.vm.provision "docker" do |d|
+    d.pull_images "continuumio/miniconda3"
+    d.pull_images "tutum/mongodb"
+    d.run "continuumio/miniconda3",
+      cmd: "conda info"
+      #args: "-v '/vagrant:/var/www'"
+    d.run "tutum/mongodb",
+      cmd: "bash -l"
+      #args: "-v '/vagrant:/var/www'"
+      #docker run -d -p 27017:27017 -p 28017:28017 tutum/mongodb
+    end
+
+end
+
+
