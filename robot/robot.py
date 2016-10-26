@@ -5,7 +5,7 @@ import threading
 import multiprocessing
 from ipaddress import AddressValueError, ip_address, IPv4Address, IPv6Address
 from clients import kuka_client
-from robot.robot_update import RobotUpdateWorker
+from robot.robot_update import ClientWorker
 import time
 
 def valid_ip_address(instance, attribute, value, logger=None):
@@ -75,11 +75,14 @@ class Robot():
     client = kuka_client.KukaClient()
 
 if __name__ == '__main__':
+    # Application will initialize robots (eventually, should pull robots from DB)
     bpl = Robot()
-    updater = RobotUpdateWorker(bpl)
+    # Initialize 'update workers'
+    updater = ClientWorker(bpl)
     bpl.client.status('TipDressCounter')
     bpl.client.subscribe('TipDressCounter', None)
-    RobotUpdateWorker.start()
+    # Start update workers
+    updater.start()
 
     while True:
         time.sleep(10)

@@ -2,7 +2,7 @@
 import attr
 from clients.client import BaseClient
 from robot.robot import Robot, Robots
-from robot.robot_update import RobotUpdateWorker
+from robot.robot_update import ClientWorker
 import multiprocessing.Queue as Queue
 
 from gritty_soap import Client
