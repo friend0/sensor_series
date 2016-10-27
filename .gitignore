@@ -3,6 +3,7 @@ __pycache__/*
 */__pycache__/*
 
 *.py[cod]
+*.pyc
 *$py.class
 
 # C extensions
@@ -54,13 +55,10 @@ coverage.xml
 *.log
 
 # Pycharm idea files:
-workspace.xml
 tasks.xml
-misc.xml
 .idea
 
 # Gritty Soap Ignores
-*pycache*
 
 # Sphinx documentation
 docs/_build/
