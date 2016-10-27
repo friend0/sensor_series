@@ -5,7 +5,7 @@ import requests
 from gritty_soap.cache import SqliteCache
 from gritty_soap.utils import NotSet, get_version
 
-from panopticon import etree_to_string
+from gritty_soap.wsdl.utils import etree_to_string
 
 
 class Transport(object):

@@ -6,7 +6,7 @@ from gritty_soap.wsdl.definitions import Binding, Operation
 from gritty_soap.wsdl.messages import DocumentMessage, RpcMessage
 from lxml import etree
 
-from panopticon import etree_to_string
+from gritty_soap.wsdl.utils import etree_to_string
 
 
 class SoapBinding(Binding):

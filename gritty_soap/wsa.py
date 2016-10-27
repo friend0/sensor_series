@@ -4,7 +4,7 @@ from gritty_soap.plugins import Plugin
 from lxml import etree
 from lxml.builder import ElementMaker
 
-from panopticon import get_or_create_header
+from gritty_soap.wsdl.utils import get_or_create_header
 
 
 WSA = ElementMaker(namespace='http://www.w3.org/2005/08/addressing')

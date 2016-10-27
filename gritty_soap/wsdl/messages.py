@@ -8,7 +8,7 @@ from gritty_soap.utils import as_qname
 from lxml import etree
 from lxml.builder import ElementMaker
 
-from panopticon import etree_to_string
+from gritty_soap.wsdl.utils import etree_to_string
 
 
 SerializedMessage = namedtuple('SerializedMessage', ['path', 'headers', 'content'])
