@@ -27,13 +27,13 @@ class ClientWorker(Thread):
     sampling_rate = attr.ib(default=.5)
 
     # Set up a channel to receive work from the ventilator
-    work_receiver = attr.ib(context.socket(zmq.PULL))
+    work_receiver = attr.ib(zmq.Context().socket(zmq.PULL))
 
     # Set up a channel to send result of work to the results reporter
-    results_sender = attr.ib(context.socket(zmq.PUSH))
+    results_sender = attr.ib(zmq.Context().socket(zmq.PUSH))
 
     # Set up a channel to receive control messages over
-    control_receiver = attr.ib(context.socket(zmq.SUB))
+    control_receiver = attr.ib(zmq.Context().socket(zmq.SUB))
 
     # Set up a poller to multiplex the work receiver and control receiver channels
     poller = attr.ib(zmq.Poller())

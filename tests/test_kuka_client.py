@@ -3,6 +3,8 @@ sys.path = [ "src" ] + sys.path
 
 from panopticon import panopticon
 
+panopticon.robot.Robot()
+
 panopticon.watch()
 panopticon.listen()
 panopticon.learn()

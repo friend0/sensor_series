@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import attr
-from gritty_soap import Client
-
-from panopticon.clients import BaseClient
+from gritty_soap.client import Client
+from panopticon.clients.client import BaseClient
 
 
 def hostname(robot):
@@ -19,7 +18,7 @@ class KukaClient(BaseClient):
 
     wsdl = attr.ib(default=None)
     client = attr.ib(default=Client(wsdl="/home/vagrant/dev/opc/OpcXMLDaServer.asmx", service_name='OpcXmlDA'))
-    subscriptions = attr.ib(defualt=attr.Factory(dict))
+    subscriptions = attr.ib(default=attr.Factory(dict))
 
     def subscribe_all(self):
         """

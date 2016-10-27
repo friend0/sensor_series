@@ -1,10 +1,11 @@
-from panopticon import Robot
+import panopticon
+import time
 
 if __name__ == '__main__':
     # Application will initialize robots (eventually, should pull robots from DB)
-    bpl = Robot()
+    bpl = panopticon.Robot()
     # Initialize 'update workers'
-    updater = ClientWorker(bpl)
+    updater = panopticon.ClientWorker(bpl)
     bpl.client.status('TipDressCounter')
     bpl.client.subscribe('TipDressCounter', None)
     # Start update workers

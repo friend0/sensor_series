@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from panopticon.clients import BaseClient
+from panopticon.clients.client import BaseClient
 
 class FanucClient(BaseClient):
 
