@@ -1,8 +1,13 @@
-import pytest
-import mock
-from clients.kuka_client import KukaClient
-from clients.client import BaseClient
+import sys
+sys.path = [ "src" ] + sys.path
 
+from panopticon import panopticon
+
+panopticon.watch()
+panopticon.listen()
+panopticon.learn()
+
+"""
 def test_client_api():
     assert isinstance(KukaClient(), BaseClient)
 
@@ -23,3 +28,4 @@ def test_client_properties():
     result = client.get_properties()
     # todo: come up with better assertion
     assert True
+"""

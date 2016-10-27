@@ -1,12 +1,11 @@
+import collections
+from ipaddress import AddressValueError, ip_address, IPv4Address, IPv6Address
+
 import attr
 import structlog
-import collections
-import threading
-import multiprocessing
-from ipaddress import AddressValueError, ip_address, IPv4Address, IPv6Address
-from clients import kuka_client
-from robot.robot_update import ClientWorker
-import time
+
+from panopticon.clients import kuka_client
+
 
 def valid_ip_address(instance, attribute, value, logger=None):
     if logger is None:
@@ -74,16 +73,3 @@ class Robot():
     make = attr.ib(default=None)
     client = kuka_client.KukaClient()
 
-if __name__ == '__main__':
-    # Application will initialize robots (eventually, should pull robots from DB)
-    bpl = Robot()
-    # Initialize 'update workers'
-    updater = ClientWorker(bpl)
-    bpl.client.status('TipDressCounter')
-    bpl.client.subscribe('TipDressCounter', None)
-    # Start update workers
-    updater.start()
-
-    while True:
-        time.sleep(10)
-        print("Alive")

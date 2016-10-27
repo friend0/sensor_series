@@ -15,7 +15,6 @@ from gritty_soap.xsd import indicators as xsd_indicators
 from gritty_soap.xsd import types as xsd_types
 from gritty_soap.xsd.parser import load_external
 
-
 logger = logging.getLogger(__name__)
 
 
