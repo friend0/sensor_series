@@ -18,50 +18,55 @@ class ClientVentilator():
         for robot in robots:
             ventilator_pipe.send(msgpack.dumps(robot))
 
+@attr.s
 class ClientWorker(Thread):
 
-    def __init__(self, robots, sampling_rate, worker_id):
-        super(ClientWorker, self).__init__()
-        context = zmq.Context()
+    #def __init__(self, robots, sampling_rate, worker_id):
+    context = attr.ib(zmq.Context())
+    #self.queue = queue
+    sampling_rate = attr.ib(default=.5)
+
+    # Set up a channel to receive work from the ventilator
+    work_receiver = attr.ib(context.socket(zmq.PULL))
+
+    # Set up a channel to send result of work to the results reporter
+    results_sender = attr.ib(context.socket(zmq.PUSH))
+
+    # Set up a channel to receive control messages over
+    control_receiver = attr.ib(context.socket(zmq.SUB))
+
+    # Set up a poller to multiplex the work receiver and control receiver channels
+    poller = attr.ib(zmq.Poller())
+
+
+    def run(self):
+
         self.daemon = True
-        #self.queue = queue
-        self.sampling_rate = sampling_rate
+        self.work_receiver.connect("tcp://127.0.0.1:5557")
+        self.results_sender.connect("tcp://127.0.0.1:5558")
+        self.control_receiver.connect("tcp://127.0.0.1:5559")
 
-        # Set up a channel to receive work from the ventilator
-        work_receiver = context.socket(zmq.PULL)
-        work_receiver.connect("tcp://127.0.0.1:5557")
-
-        # Set up a channel to send result of work to the results reporter
-        results_sender = context.socket(zmq.PUSH)
-        results_sender.connect("tcp://127.0.0.1:5558")
-
-        # Set up a channel to receive control messages over
-        control_receiver = context.socket(zmq.SUB)
-        control_receiver.connect("tcp://127.0.0.1:5559")
-        control_receiver.setsockopt(zmq.SUBSCRIBE, "")
-
-        # Set up a poller to multiplex the work receiver and control receiver channels
-        poller = zmq.Poller()
-        poller.register(work_receiver, zmq.POLLIN)
-        poller.register(control_receiver, zmq.POLLIN)
+        self.control_receiver.setsockopt(zmq.SUBSCRIBE, "")
+        self.poller.register(self.work_receiver, zmq.POLLIN)
+        self.poller.register(self.control_receiver, zmq.POLLIN)
 
         # Loop and accept messages from both channels, acting accordingly
         while True:
-            socks = dict(poller.poll())
+            socks = dict(self.poller.poll())
 
             # If the message came from work_receiver channel, square the number
             # and send the answer to the results reporter
-            if socks.get(work_receiver) == zmq.POLLIN:
-                work_message = work_receiver.recv_json()
+            if socks.get(self.work_receiver) == zmq.POLLIN:
+                work_message = self.work_receiver.recv_json()
                 product = work_message['num'] * work_message['num']
-                answer_message = { 'worker' : worker_id, 'result' : product }
-                results_sender.send_json(answer_message)
+                answer_message = { 'worker' : self.worker_id, 'result' : product }
+                self.results_sender.send_json(answer_message)
 
             # If the message came over the control channel, shut down the worker.
-            if socks.get(control_receiver) == zmq.POLLIN:
-                control_message = control_receiver.recv()
+            if socks.get(self.control_receiver) == zmq.POLLIN:
+                control_message = self.control_receiver.recv()
                 if control_message == "FINISHED":
-                    print("Worker %i received FINSHED, quitting!" % worker_id)
+                    print("Worker %i received FINSHED, quitting!" % self.worker_id)
                     break
 
     def run(self):
