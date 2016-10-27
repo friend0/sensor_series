@@ -1,5 +1,7 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
+__pycache__/*
+*/__pycache__/*
+
 *.py[cod]
 *$py.class
 
@@ -56,6 +58,9 @@ workspace.xml
 tasks.xml
 misc.xml
 .idea
+
+# Gritty Soap Ignores
+*pycache*
 
 # Sphinx documentation
 docs/_build/
