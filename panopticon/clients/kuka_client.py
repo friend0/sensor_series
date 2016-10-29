@@ -110,7 +110,7 @@ class KukaClient(BaseClient):
         _get_properties = self.client.service.GetProperties
         return _get_properties(ReturnPropertyValues=True, ItemIDs=[{'ItemPath':item_path, 'ItemName':item_name}])
 
-    def subscribe(self, item_name, server_handle, **kwargs):
+    def subscribe(self, item_name, **kwargs):
         """
 
         Subscribe to updates on a particular item. Non-polling!
@@ -132,14 +132,17 @@ class KukaClient(BaseClient):
         response = _subscribe(ReturnValuesOnReply=True, SubscriptionPingRate=rate, Options=options,
                    ItemList={'Items': {'ItemPath': '', 'ItemName': "{}.{}".format(element, item_name)}})
 
+        import json
         # todo: check for errors here
-        handle = response.get('ServerSubHandle', None)
+        # todo: need to get this laoded into dict for robustness
+        handle = response['ServerSubHandle']
+
         if not handle:
             # raise an exception
             pass
         else:
             self.subscriptions[item_name] = handle
-        return response
+        return response, handle
 
     def polled_subscription(self, **kwargs):
         """
@@ -171,8 +174,8 @@ class KukaClient(BaseClient):
         # hold time is given in this form...
         #todo: get hold time in this format. Figure out what hold time does, configure as needed.
         hold_time = '2016-10-11T10:31:02.311-07:00'
-        _polled_subscription = self.client.services.SubscriptionPolledRefresh
-        results = _polled_subscription(ReturnAllItems=True, HoldTime=hold, WaitTime=wait, ItemList=item_list)
+        _polled_subscription = self.client.service.SubscriptionPolledRefresh
+        results = _polled_subscription(ServerSubHandles=handle_string, Options=options, ReturnAllItems=True, HoldTime=hold, WaitTime=wait)
         return results
 
     def subscription_cancel(self, server_sub_handle, client_handle):

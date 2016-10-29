@@ -18,27 +18,30 @@ class ClientVentilator():
         for robot in robots:
             ventilator_pipe.send(msgpack.dumps(robot))
 
-@attr.s
 class ClientWorker(Thread):
 
-    #def __init__(self, robots, sampling_rate, worker_id):
-    context = attr.ib(zmq.Context())
-    #self.queue = queue
-    sampling_rate = attr.ib(default=.5)
+    def __init__(self, robots, **kwargs):
+        super(ClientWorker, self).__init__()
+        self.context = zmq.Context()
+        #self.queue = queue
+        self.robots = robots
+        self.sampling_rate = kwargs.get('sampling_rate', .5)
+        # todo: figure out a better defualt when we don't get id (UUID?)
+        self.id = kwargs.get('id', None)
 
-    # Set up a channel to receive work from the ventilator
-    work_receiver = attr.ib(zmq.Context().socket(zmq.PULL))
+        # Set up a channel to receive work from the ventilator
+        self.work_receiver = zmq.Context().socket(zmq.PULL)
 
-    # Set up a channel to send result of work to the results reporter
-    results_sender = attr.ib(zmq.Context().socket(zmq.PUSH))
+        # Set up a channel to send result of work to the results reporter
+        self.results_sender = zmq.Context().socket(zmq.PUSH)
 
-    # Set up a channel to receive control messages over
-    control_receiver = attr.ib(zmq.Context().socket(zmq.SUB))
+        # Set up a channel to receive control messages over
+        self.control_receiver = zmq.Context().socket(zmq.SUB)
 
-    # Set up a poller to multiplex the work receiver and control receiver channels
-    poller = attr.ib(zmq.Poller())
+        # Set up a poller to multiplex the work receiver and control receiver channels
+        self.poller = attr.ib(zmq.Poller())
 
-
+    """
     def run(self):
 
         self.daemon = True
@@ -68,12 +71,13 @@ class ClientWorker(Thread):
                 if control_message == "FINISHED":
                     print("Worker %i received FINSHED, quitting!" % self.worker_id)
                     break
+    """
 
     def run(self):
 
         #for robot in iter(self.queue.get, None):
         while True:
-            for robot in self.robots:
+            for hostname, robot in self.robots:
                 result = robot.client.polled_subscription()
                 print(result)
 
@@ -89,10 +93,10 @@ class ClientMongoConnection():
     control_sender = context.socket(zmq.PUB)
     control_sender.bind("tcp://127.0.0.1:5559")
 
-    for task_nbr in range(10000):
-        result_message = results_receiver.recv_json()
+    #for task_nbr in range(10000):
+    #    result_message = results_receiver.recv_json()
 
 
     # Signal to all workers that we are finsihed
-    control_sender.send("FINISHED")
-    time.sleep(5)
+    #control_sender.send("FINISHED")
+    #time.sleep(5)

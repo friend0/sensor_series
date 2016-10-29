@@ -19,7 +19,7 @@ def valid_ip_address(instance, attribute, value, logger=None):
     except AddressValueError as e:
         logger.debug("{} is not a valid ip address.".format(potential_address))
 
-
+@attr.s
 class Robots(collections.MutableMapping):
     """
 
@@ -28,24 +28,28 @@ class Robots(collections.MutableMapping):
 
     """
 
-    robots = attr.ib(default={'BIW1': {}, 'BIW2': {}, 'kuka': {}, 'fanuc': {}, 'all': {}})
-
+    robots = attr.ib({'BIW1': {}, 'BIW2': {}, 'kuka': {}, 'fanuc': {}, 'all': {}})
+    group = attr.ib(default=None)
     def __getitem__(self, key):
         return self.robots[key]
 
     def __setitem__(self, key, value):
-        self.robots[key] = value
-        self.dbroot._p_changed = True
+        self.robots['all'][key] = value
+        if value.make:
+            pass
+        if value.line:
+            pass
+        #self.dbroot._p_changed = True
 
     def __delitem__(self, key):
         del self.robots[key]
-        self.dbroot._p_changed = True
+        #self.dbroot._p_changed = True
 
     def __iter__(self):
-        return iter(self.robots)
+        return iter(self.robots['all'].items())
 
     def __len__(self):
-        return len(self.robots)
+        return len(self.robots['all'].items())
 
     def __repr__(self):
         str = ''
@@ -65,11 +69,19 @@ class Robots(collections.MutableMapping):
 @attr.s
 class Robot():
 
+    hostname = attr.ib(default = None)
     ip = attr.ib(default='127.0.0.1', validator=valid_ip_address)
     line = attr.ib(default = None)
-    hostname = attr.ib(default = None)
     cell = attr.ib(default = None)
     short_name = attr.ib(default = None)
     make = attr.ib(default=None)
-    client = kuka_client.KukaClient()
+    client = attr.ib(kuka_client.KukaClient())
+    __server_sub_handles = attr.ib(default=attr.Factory(dict))
 
+    def add_subscription(self, item, **kwargs):
+        loud = kwargs.get('loud', False)
+        response, handle = self.client.subscribe(item)
+        # todo: need to add logging functionality
+        if loud:
+            print(response)
+        self.__server_sub_handles[item] = handle
