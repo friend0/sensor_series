@@ -1,0 +1,11 @@
+version: '2'
+services:
+  panopticon:
+    build: .
+    command: python -u app.py
+    ports:
+     - "5000:5000"
+    depends_on:
+    - mongo
+  mongo:
+    image: mongo:3.3
