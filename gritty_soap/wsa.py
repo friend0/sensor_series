@@ -1,9 +1,9 @@
 import uuid
 
+from gritty_soap.plugins import Plugin
 from lxml import etree
 from lxml.builder import ElementMaker
 
-from gritty_soap.plugins import Plugin
 from gritty_soap.wsdl.utils import get_or_create_header
 
 

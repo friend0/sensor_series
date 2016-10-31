@@ -1,12 +1,10 @@
+from urllib.parse import urlparse
+
 from defusedxml.lxml import fromstring
 from lxml import etree
 
-# todo: fix six imports
-#from six.moves.urllib.parse import urlparse
-from urllib.parse import urlparse
 from gritty_soap.exceptions import XMLSyntaxError
 from gritty_soap.parser import absolute_location
-
 
 
 class ImportResolver(etree.Resolver):

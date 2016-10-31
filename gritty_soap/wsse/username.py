@@ -4,7 +4,7 @@ import os
 
 from lxml.builder import ElementMaker
 
-from pyOPC.gritty_soap.wsse import utils
+from gritty_soap.wsse import utils
 
 NSMAP = {
     'wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',

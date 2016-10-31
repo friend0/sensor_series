@@ -2,12 +2,12 @@ from collections import OrderedDict, namedtuple
 
 import six
 from defusedxml.lxml import fromstring
-from lxml import etree
-from lxml.builder import ElementMaker
-
 from gritty_soap import exceptions, xsd
 from gritty_soap.helpers import serialize_object
 from gritty_soap.utils import as_qname
+from lxml import etree
+from lxml.builder import ElementMaker
+
 from gritty_soap.wsdl.utils import etree_to_string
 
 
