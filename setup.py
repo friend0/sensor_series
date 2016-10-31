@@ -23,6 +23,7 @@ setup(
     author="Ryan Rodriguez",
     author_email="ryarodriguez@tesla.com",
     packages=find_packages(exclude=['docs', 'tests*']),
+
     data_files=[],
     scripts=[],
     install_requires=[],
