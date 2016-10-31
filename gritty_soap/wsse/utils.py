@@ -3,7 +3,7 @@ import datetime
 import pytz
 from lxml.builder import ElementMaker
 
-from pyOPC.gritty_soap.wsdl.utils import get_or_create_header
+from gritty_soap.wsdl.utils import get_or_create_header
 
 NSMAP = {
     'wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',

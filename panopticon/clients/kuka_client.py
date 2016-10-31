@@ -17,7 +17,7 @@ class KukaClient(BaseClient):
     """
 
     wsdl = attr.ib(default=None)
-    client = attr.ib(default=Client(wsdl="/home/vagrant/dev/opc/OpcXMLDaServer.asmx", service_name='OpcXmlDA'))
+    client = attr.ib(default=Client(wsdl="/panopticon/OpcXMLDaServer.asmx", service_name='OpcXmlDA'))
     subscriptions = attr.ib(default=attr.Factory(dict))
 
     def subscribe_all(self):
