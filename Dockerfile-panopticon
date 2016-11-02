@@ -17,10 +17,10 @@ EXPOSE 5555
 
 ADD ./gritty_soap /panopticon/gritty_soap
 ADD ./panopticon /panopticon/panopticon
-ADD ./web /panopticon/web
+
 ADD OpcXMLDaServer.asmx /panopticon/OpcXMLDaServer.asmx
 ADD setup.py panopticon/setup.py
-
+ADD ./panopticon/execute.py /panopticon/execute.py
 RUN cd panopticon && python setup.py install
 WORKDIR /panopticon
 RUN ls

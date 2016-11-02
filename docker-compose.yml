@@ -1,7 +1,16 @@
 version: '2'
 services:
   panopticon:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-panopticon
+    command: python -u execute.py
+    depends_on:
+    - mongo
+  webyshev:
+    build:
+      context: .
+      dockerfile: Dockerfile-flask
     command: python -u app.py
     ports:
      - "5000:5000"

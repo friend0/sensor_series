@@ -17,6 +17,7 @@ dependencies:
   - defusedxml==0.4.1
   - flask==0.11.1
   - flask-login==0.4.0
+  - flask-mongoengine==0.8
   - flask-wtf==0.13.1
   - isodate==0.5.4
   - itsdangerous==0.24

@@ -22,7 +22,7 @@ ADD OpcXMLDaServer.asmx /panopticon/OpcXMLDaServer.asmx
 ADD setup.py panopticon/setup.py
 
 RUN cd panopticon && python setup.py install
-WORKDIR /panopticon
+WORKDIR /panopticon/web
 RUN ls
 
 #CMD [ "python /panopticon/app.py" ]
