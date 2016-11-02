@@ -1,9 +1,7 @@
 import collections
 from ipaddress import AddressValueError, ip_address, IPv4Address, IPv6Address
-
 import attr
 import structlog
-
 from panopticon.clients import kuka_client
 
 
@@ -28,13 +26,18 @@ class Robots(collections.MutableMapping):
 
     """
 
-    robots = attr.ib({'BIW1': {}, 'BIW2': {}, 'kuka': {}, 'fanuc': {}, 'all': {}})
+    robots = attr.ib(default=attr.Factory(dict))
     group = attr.ib(default=None)
+
+    def load(self, robot_list):
+        for robot in robot_list:
+            self.robots[robot.hostname] = robot
+
     def __getitem__(self, key):
         return self.robots[key]
 
     def __setitem__(self, key, value):
-        self.robots['all'][key] = value
+        self.robots[key] = value
         if value.make:
             pass
         if value.line:
@@ -46,10 +49,10 @@ class Robots(collections.MutableMapping):
         #self.dbroot._p_changed = True
 
     def __iter__(self):
-        return iter(self.robots['all'].items())
+        return iter(self.robots)
 
     def __len__(self):
-        return len(self.robots['all'].items())
+        return len(self.robots.items())
 
     def __repr__(self):
         str = ''
@@ -60,11 +63,6 @@ class Robots(collections.MutableMapping):
         return str
         #return json.dumps(self.robots['all'].values())
 
-    def update(self):
-        pass
-
-    def run(self):
-        pass
 
 @attr.s
 class Robot():
@@ -85,3 +83,16 @@ class Robot():
         if loud:
             print(response)
         self.__server_sub_handles[item] = handle
+
+if __name__ == '__main__':
+    bpl = Robot(hostname='BIW1-BPL010RB1', ip='172.16.22.101')
+    bpg = Robot(hostname='BIW1-BPG010RB1', ip='172.16.22.101')
+    bpr = Robot(hostname='BIW1-BPR010RB1', ip='172.16.22.101')
+
+    robots = Robots(group='Group1')
+    robots[bpl.hostname] = bpl
+    robots[bpg.hostname] = bpg
+    robots[bpr.hostname] = bpg
+
+
+    print(robots.split(1))
