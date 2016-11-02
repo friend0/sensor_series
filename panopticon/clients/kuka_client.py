@@ -2,11 +2,8 @@
 import attr
 from gritty_soap.client import Client
 from panopticon.clients.client import BaseClient
+import os
 
-
-def hostname(robot):
-
-    return True
 
 @attr.s
 class KukaClient(BaseClient):
@@ -17,7 +14,9 @@ class KukaClient(BaseClient):
     """
 
     wsdl = attr.ib(default=None)
-    client = attr.ib(default=Client(wsdl="/panopticon/OpcXMLDaServer.asmx", service_name='OpcXmlDA'))
+    dir = os.path.dirname(os.path.abspath(__file__))
+    print("CLIENT_SHIT ", os.path.join(dir, os.pardir, 'OpcXMLDaServer.asmx'))
+    client = attr.ib(default=Client(wsdl=os.path.join(dir, os.pardir, 'OpcXMLDaServer.asmx'), service_name='OpcXmlDA'))
     subscriptions = attr.ib(default=attr.Factory(dict))
 
     def subscribe_all(self):
