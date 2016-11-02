@@ -5,21 +5,12 @@ from .forms import LoginForm
 from .user import User
 
 
-
 @app.route('/')
 def home():
     #_items = db.tododb.find()
     #items = [item for item in _items]
     return "Fuck Off"
     return render_template('base.html')
-
-
-def todo():
-
-    _items = db.tododb.find()
-    items = [item for item in _items]
-
-    return render_template('todo.html', items=items)
 
 @app.route('/new', methods=['POST'])
 def new():
