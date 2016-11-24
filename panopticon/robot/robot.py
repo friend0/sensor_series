@@ -63,6 +63,10 @@ class Robots(collections.MutableMapping):
         return str
         #return json.dumps(self.robots['all'].values())
 
+def client_init(instance, attribute, value):
+    # todo: make this less hard coded, i.e. just use input args fo rthis validator to init client.
+    print("HOSTNAME", instance.hostname, instance.ip)
+    instance.client = kuka_client.KukaClient(hostname=instance.hostname, ip=instance.ip)
 
 @attr.s
 class Robot():
@@ -73,16 +77,27 @@ class Robot():
     cell = attr.ib(default = None)
     short_name = attr.ib(default = None)
     make = attr.ib(default=None)
-    client = attr.ib(kuka_client.KukaClient())
+    client = attr.ib(default=None, validator= client_init)
     __server_sub_handles = attr.ib(default=attr.Factory(dict))
 
     def add_subscription(self, item, **kwargs):
-        loud = kwargs.get('loud', False)
-        response, handle = self.client.subscribe(item)
-        # todo: need to add logging functionality
-        if loud:
-            print(response)
+        """
+
+        :param item:
+        :param kwargs:
+        :return:
+
+        """
+
+        response, handle = self.client.subscribe(item, **kwargs)
         self.__server_sub_handles[item] = handle
+
+    def subscription_refresh(self):
+
+        # Get refresh results from the client, then add the hostname to the response dictionary
+        returner = self.client.subscription_refresh()
+        returner['hostname'] = self.hostname
+        return returner
 
 if __name__ == '__main__':
     bpl = Robot(hostname='BIW1-BPL010RB1', ip='172.16.22.101')
@@ -93,6 +108,3 @@ if __name__ == '__main__':
     robots[bpl.hostname] = bpl
     robots[bpg.hostname] = bpg
     robots[bpr.hostname] = bpg
-
-
-    print(robots.split(1))

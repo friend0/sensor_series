@@ -2,42 +2,59 @@ import math
 import uuid
 import multiprocessing
 import zmq
-import mongoengine
 import panopticon
 
-# todo: see if the __all__ tag is working as expected/define what it should do.
 __all__ = ['Robot', 'Robots', 'ClientWorker', 'ClientVentilator', 'Panopticon']
 
 NUM_WORKERS = 5
 
-class Panopticon():
+class Panopticon(multiprocessing.Process):
+    """
 
-    def __init__(self, context=None, db=None, robots=None):
+    The Panopticon class handles the macroscopic tasks involved with starting, maintaining, and tearing down
+    OPC client sessions. In particular, this function:
 
-        if context is None:
-            self.context = zmq.Context()
-        else:
-            self.context = context
+    * Instructs each robot in the given list of Robots() to subscribe to each item in the items arg.
+      This is done using the 'watch' function.
+    * Distributes the Robots amongst a set of RobotWorker threads, which are phase-synced using a RobotVentilator.
+      When robots receive messages from the RobotVentilator, an update cycle is initiated, and all robots in all workers
+      configured to listen to a given ventilator poll their subscriptions, and return the results. These results are
+      then forwarded to the RobotMongo class to update the database. Done using the 'listen' function.
+    * When the Panopticon process is started, all worker threads are started, along with a single RobotVentilator,
+      therby initiating all require mechanisms for running the client. Apart from waiting for Interrupt signals,
+      the Panopticon process will also provide TUI functionality for interfacing with live client connections,
+      subscriptions, and etc.
+
+
+    .. todo::
+        Implement loading of robots from DB. Will require comm with RobotMongo, and calling of 'get_opc' function
+        from that class.
+
+    .. todo::
+        Implement TUI for interfacing with live clients.
+
+    """
+
+    def __init__(self, robots=None, items=None, *args, **kwargs):
+        super(Panopticon, self).__init__()
+        self.context = zmq.Context()
+        self.poller = zmq.Poller()
+        # ZMQ channel initialization.
+        self.control_receiver = self.context.socket(zmq.SUB)
+        # todo: bring sanity to port numbering/management
+        self.control_receiver.connect("tcp://127.0.0.1:5556")
+        self.control_receiver.setsockopt_string(zmq.SUBSCRIBE, "")
 
         self.workers = {}
-        # Set up a channel to receive control messages over
-        self.control_receiver = zmq.Context().socket(zmq.SUB)
-        # Set up a poller to multiplex the work receiver and control receiver channels
-        self.poller = zmq.Poller()
-
+        self.items = items
         # todo: remove when db load is implemented
-        # get robots from db (use default list if not db - temp soln for testing
         self.robots = robots
-        #if not db and robots:
-        #    # make some default robots here
-        #    self.robots = robots
-        #else:
-        #    # pull from db, create Robots instance
-        #    pass
+        self.ventilator = None
+        self.watch(self.items, **kwargs)
+        self.listen(**kwargs)
 
 
     def watch(self, items, **kwargs):
-        #todo: robot should carry its own list of items, and those items should be stored in the database
         """
 
         Starts subscriptions to the given set of robots, for each of the given items.
@@ -46,65 +63,68 @@ class Panopticon():
         :param items: A list of items for which we want to start a subscription.
         :return: robots, with updated server
 
+        .. todo ::
+            Robot should carry its own list of items, and those items should be stored in the database
+
         """
 
-        loud = kwargs.get('loud', False)
-        print(self.robots)
         for robot_ in self.robots:
-            print(robot_)
             for item in items:
                 print(item)
-                robot_.add_subscription(item, loud=loud)
+                robot_.add_subscription(item, **kwargs)
 
-    def listen(self, max_workers=5):
+    def listen(self, **kwargs):
         """
 
-        Update subscriptions configured in `watch` function
-
-        :param robots:
-        :return:
+        Distribute Robots amongst RobotWorker threads.
 
         """
-
-        unique_id = uuid.uuid4()
+        max_workers = kwargs.get('max_workers', 5)
 
         # Assign robots to groups, then assign each group to a worker.
-
         actual_workers = min(len(self.robots), max_workers)
         work_group = [self.robots[x:x + math.ceil(len(self.robots) / actual_workers)] for x in
                       range(0, len(self.robots), math.ceil(len(self.robots) / actual_workers))]
 
         for group in work_group:
-            print("GROUP: ", group)
             robot_group = panopticon.Robots()
             robot_group.load(group)
-            client_worker = panopticon.ClientWorker(self.context, robots=robot_group)
+            client_worker = panopticon.RobotWorker(self.context, robots=robot_group)
             self.workers[id(client_worker)] = client_worker
 
+    def start(self):
+        self.learn()
 
     def learn(self):
-        table = None
-        table_name = None
-        for worker in self.workers.values():
+        """
+
+        Start RobotWorker threads, and spawn a RobotVentilator.
+
+        .. todo::
+            Implement a TUI for interacting with live clients. Will probably need duplex communication with the
+            RobotMongo client if both of them are to have influence over live subscriptions.
+
+        """
+
+        print("Panopticon starting workers")
+        for key, worker in self.workers.items():
+            print(key, worker)
             worker.start()
-        ventilator = panopticon.ClientVentilator(self.robots)
-        # todo: write functions to interface with pymongo client
-        #mongod = robot.ClientMongoConnection(table, table_name)
+            print(key, worker)
 
-
-    def start(self):
+        ventilator = panopticon.RobotVentilator(self.context, self.robots)
 
         while True:
-            # Loop and accept messages from both channels, acting accordingly
-            while True:
-                socks = dict(self.poller.poll())
-                # If the message came from work_receiver channel, square the number
-                # and send the answer to the results reporter
+            socks = dict(self.poller.poll())
 
-                if socks.get(self.control_receiver) == zmq.POLLIN:
-                    control_message = self.control_receiver.recv()
-                    if control_message == "FINISHED":
-                        # todo: implement proper cleanup of client worker
-                        break
+            if socks.get(self.control_receiver) == zmq.POLLIN:
+                control_message = self.control_receiver.recv()
+                if control_message == "FINISHED":
+                    # cleanup threads
+                    break
 
-# todo: write a sig-int for this to clean up the process nicely.
+        # todo: write a sig-int for this to clean up the process nicely.
+
+
+
+

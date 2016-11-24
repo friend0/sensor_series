@@ -5,16 +5,21 @@ services:
       context: .
       dockerfile: Dockerfile-panopticon
     command: python -u execute.py
-    depends_on:
-    - mongo
+   # depends_on:
+   # - mongo
   webyshev:
     build:
       context: .
       dockerfile: Dockerfile-flask
     command: python -u app.py
     ports:
-     - "5000:5000"
-    depends_on:
-    - mongo
-  mongo:
-    image: mongo:3.3
+      - "5000:5000"
+  #  depends_on:
+  #    - mongo
+  #mongo:
+  #  image: mongo:3.3
+  #  volumes:
+  #    - //c/Users/ryarodriguez/data:/test_reroute
+  #  ports:
+  #    - "27017:27017"
+  #  restart: always

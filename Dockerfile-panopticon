@@ -10,10 +10,8 @@ RUN conda update conda -y \
 
 ENV PATH /opt/conda/envs/panopticon/bin:$PATH
 
-# Flask Application
-EXPOSE 5000
 # Zmq Sub Server
-EXPOSE 5555
+EXPOSE 5555 5558
 
 ADD ./gritty_soap /panopticon/gritty_soap
 ADD ./panopticon /panopticon/panopticon
@@ -23,6 +21,3 @@ ADD setup.py panopticon/setup.py
 ADD ./panopticon/execute.py /panopticon/execute.py
 RUN cd panopticon && python setup.py install
 WORKDIR /panopticon
-RUN ls
-
-#CMD [ "python /panopticon/app.py" ]

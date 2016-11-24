@@ -9,7 +9,7 @@ robots[bpl.hostname] = bpl
 
 panpotic = Panopticon(context, robots=robots)
 panpotic.watch(['TipDressCounter'])
-panpotic.start()
+panpotic.learn()
 
 #panopticon.watch(robots, ['TipDressCounter'], loud=True)
 #panopticon.listen(robots)
