@@ -179,9 +179,8 @@ class KukaClient(BaseClient):
         hold_time = '2016-10-11T10:31:02.311-07:00'
         _polled_subscription = self.client.service.SubscriptionPolledRefresh
         results = _polled_subscription(ServerSubHandles=list(self.subscriptions.values()), Options=options, ReturnAllItems=True, HoldTime=hold, WaitTime=wait)
-        response = Response(ResponseTypes.POLLED_SUBSCRIPTION)(results, polled_refresh=True)
-        response['hostname'] = self.hostname
-        # todo: remove polled_refresh kwarg
+        response = Response(ResponseTypes.POLLED_SUBSCRIPTION)(results, hostname=self.hostname, polled_refresh=True)
+
         return  response
 
 
