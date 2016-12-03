@@ -56,7 +56,7 @@ class Response(collections.MutableMapping):
     def status_parser(self):
         raise NotImplementedError
 
-    def subscription_results_parser(self, response, **kwargs):
+    def subscription_results_parser(self, response, hostname=None, **kwargs):
         """
 
         The subscription parser is used to convert SOAP responses into python types, then load them into the
@@ -68,12 +68,13 @@ class Response(collections.MutableMapping):
         """
 
         polled = kwargs.get('polled_refresh', None)
+        # todo: this is not robust! Fixing this will be a part of move to fully automatic type detection.
         result =  response.SubscriptionPolledRefreshResult if polled else response.SubscribeResult
         invalid_handles = response.InvalidServerSubHandles if polled else None
 
         errors = response.Errors
         items = response.RItemList
-
+        self.store['hostname'] = hostname
         self.store['status'], self.store['errors'], self.store['items'] = {}, {}, {}
         self.store['status']['recv_time'] = self.json_serial(result.RcvTime)
         self.store['status']['reply_time'] = self.json_serial(result.ReplyTime)
@@ -102,7 +103,8 @@ class Response(collections.MutableMapping):
                         print("Items {} is an array. It has value {}".format(item_name, {key:val}))
                         self.store['items'].update({item_name: {'type': key, 'value': val}})
                 else:
-
+                    # todo: check if this works correctly
+                    self.store['items'].update({item_name: {'type': item_value_type, 'value': item_value}})
                     print("Item {} is NOT in an array. It has value {}.".format(item_name, item_value))
 
         return self.store
