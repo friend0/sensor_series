@@ -64,7 +64,11 @@
         // Keep track of the node that is currently being displayed as the root.
         var node;
 
-        d3.json("../static/data/biw.json", function (error, root) {
+        queue()
+        .defer(d3.json, "../static/data/robot_map.json")
+        .await(make_map);
+
+        function make_map(error, root) {
             node = root;
             var path = svg.datum(root).selectAll("path")
                     .data(partition.nodes)
@@ -98,7 +102,7 @@
                         .duration(1000)
                         .attrTween("d", arcTweenZoom(d));
             }
-        });
+        }
 
         d3.select(self.frameElement).style("height", height + "px");
 

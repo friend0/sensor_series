@@ -13,6 +13,10 @@ from flask import request, redirect, render_template, url_for, flash
 from flask_login import login_user, logout_user, login_required
 from web.forms import LoginForm
 from web.user import User
+import pymongo
+import json
+from bson import json_util
+from bson.json_util import dumps
 
 app = Flask(__name__)
 
@@ -34,6 +38,23 @@ lm = LoginManager()
 lm.init_app(app)
 lm.login_view = 'login'
 
+
+# Controller
+
+@app.route("/controller/get_robots")
+def get_robots():
+    connection = pymongo.MongoClient(host='10.0.2.2')
+    collection = connection['robots']['robot_map']
+    projects = collection.find(projection= {'_id':0})
+    json_projects = []
+    for project in projects:
+        print(project)
+        json_projects.append(project)
+    json_projects = dumps(json_projects, default=json_util.default)
+    connection.close()
+    return json_projects
+
+# View
 from web import models, views
 @app.route('/', methods=['GET'])
 def home():
