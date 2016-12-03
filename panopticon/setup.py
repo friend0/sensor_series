@@ -21,7 +21,7 @@ setup(
     license="Private Use Only - Tesla Motors 2016",
     author="Ryan Rodriguez",
     author_email="ryarodriguez@tesla.com",
-    packages=find_packages(exclude=['docs', 'tests*']),
+    packages=find_packages(exclude=['docs', 'panopticon_tests*']),
     data_files=[],
     scripts=[],
     install_requires=[],

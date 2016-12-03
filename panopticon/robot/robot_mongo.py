@@ -5,7 +5,7 @@ import msgpack
 import pymongo
 import zmq
 import uuid
-from panopticon.mongo_documents import *
+from panopticon.documents import *
 
 class RobotMongo(multiprocessing.Process):
     """

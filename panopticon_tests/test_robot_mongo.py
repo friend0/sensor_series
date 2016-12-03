@@ -1,5 +1,5 @@
 from panopticon.robot.robot_mongo import RobotMongo
-from panopticon.mongo_documents import ValueSegment, Series
+from panopticon.documents import ValueSegment, Series
 import pymongo
 import pytest
 
