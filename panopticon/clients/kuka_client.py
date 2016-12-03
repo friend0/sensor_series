@@ -4,7 +4,29 @@ from gritty_soap.client import Client
 from panopticon.clients.client import BaseClient
 from panopticon.clients.response import Response, ResponseTypes
 import os
+import re
 
+def format_wsdl(ip):
+    formatted_wsdl = ''
+    #map = mmap.mmap(fileno=0, length=2**16)
+    dir = os.path.dirname(os.path.abspath(__file__))
+
+    with open(os.path.join(dir, os.path.realpath('..'), 'opc_xml_da_server_formattable.asmx'), 'r') as f:
+        for idx, line in enumerate(f):
+            match = re.search(r'{ip}', line)
+            if match:
+                line = line.format(ip=ip)
+            formatted_wsdl = formatted_wsdl + line
+    with open('../opc_temp.wsdl', 'w') as f:
+        for idx, line in enumerate(formatted_wsdl):
+            f.write(line)
+
+def client_validator(instance, attribute, value):
+    #instance.client = None
+    wsdl = format_wsdl(value)
+    dir = os.path.dirname(os.path.abspath(__file__))
+    # todo: get this to work with some type of in-memory file object
+    client = Client(wsdl='../opc_temp.wsdl', service_name='OpcXmlDA')
 
 @attr.s
 class KukaClient(BaseClient):
@@ -16,11 +38,9 @@ class KukaClient(BaseClient):
 
     """
     hostname = attr.ib(default=None)
-    ip = attr.ib(default=None)
+    ip = attr.ib(default='127.0.0.1')
     wsdl = attr.ib(default=None)
-    dir = os.path.dirname(os.path.abspath(__file__))
-    # todo: make a formattable version of the opc wsdl so that we can update the service list on-the-fly
-    client = attr.ib(default=Client(wsdl=os.path.join(dir, os.pardir, 'OpcXMLDaServer.asmx'), service_name='OpcXmlDA'))
+    client = attr.ib(default='172.16.22.101', validator=client_validator)
     subscriptions = attr.ib(default=attr.Factory(dict))
 
     def subscribe_all(self):
@@ -170,12 +190,12 @@ class KukaClient(BaseClient):
         """
         # todo: fine-tune options
         options = kwargs.get('options', {'ReturnItemTime':True})
+
+
+        #todo: configure hold time, wait time, buffering. Test
         hold = kwargs.get('hold_time', None)
         wait = kwargs.get('wait', None)
-        # todo: determine proper format for MaxAge argument
-        max_age = kwargs.get('max_age', 0)
 
-        #todo: get hold time in this format. Figure out what hold time does, configure as needed.
         hold_time = '2016-10-11T10:31:02.311-07:00'
         _polled_subscription = self.client.service.SubscriptionPolledRefresh
         results = _polled_subscription(ServerSubHandles=list(self.subscriptions.values()), Options=options, ReturnAllItems=True, HoldTime=hold, WaitTime=wait)
@@ -212,20 +232,20 @@ class KukaClient(BaseClient):
 
 BaseClient.register(KukaClient)
 
-# todo: transpose this sequence to a tests suite
+# todo: transpose this sequence to a panopticon_tests suite
 if __name__ == '__main__':
     #context = zmq.Context()
     #sock = context.socket(zmq.SUB)
 
     kuka_client = KukaClient()
 
-    ret_val = kuka_client.status()
-    print(ret_val)
-    ret_val = kuka_client.browse()
-    print(ret_val)
-    ret_val = kuka_client.get_properties()
-    print(ret_val)
-    ret_val = kuka_client.read('TipDressCounter')
-    print(ret_val)
-    ret_val = kuka_client.subscribe('TipDressCounter', None)
-    print(ret_val)
+    #ret_val = kuka_client.status()
+    #print(ret_val)
+    #ret_val = kuka_client.browse()
+    #print(ret_val)
+    #ret_val = kuka_client.get_properties()
+    #print(ret_val)
+    #ret_val = kuka_client.read('TipDressCounter')
+    #print(ret_val)
+    #ret_val = kuka_client.subscribe('TipDressCounter', None)
+    #print(ret_val)
