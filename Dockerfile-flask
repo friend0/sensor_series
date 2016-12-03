@@ -15,6 +15,7 @@ EXPOSE 5000
 # Zmq Sub Server
 EXPOSE 5555
 
+
 ADD ./gritty_soap /panopticon/gritty_soap
 ADD ./panopticon /panopticon/panopticon
 ADD ./web /panopticon/web
@@ -22,7 +23,7 @@ ADD OpcXMLDaServer.asmx /panopticon/OpcXMLDaServer.asmx
 ADD setup.py panopticon/setup.py
 
 RUN cd panopticon && python setup.py install
-WORKDIR /panopticon
+WORKDIR /panopticon/web
 RUN ls
 
 #CMD [ "python /panopticon/app.py" ]

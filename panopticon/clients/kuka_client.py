@@ -2,22 +2,25 @@
 import attr
 from gritty_soap.client import Client
 from panopticon.clients.client import BaseClient
+from panopticon.clients.response import Response, ResponseTypes
+import os
 
-
-def hostname(robot):
-
-    return True
 
 @attr.s
 class KukaClient(BaseClient):
     """
 
     A Kuka Client class for communicating with an OPC server via XML DA.
+    This client inherits from the Client base class to ensure a consistent API across robot makes/models.
+    The OPC XML-DA protocol uses the 'gritty_soap' library for dealing with SOAP requests and replies.
 
     """
-
+    hostname = attr.ib(default=None)
+    ip = attr.ib(default=None)
     wsdl = attr.ib(default=None)
-    client = attr.ib(default=Client(wsdl="/panopticon/OpcXMLDaServer.asmx", service_name='OpcXmlDA'))
+    dir = os.path.dirname(os.path.abspath(__file__))
+    # todo: make a formattable version of the opc wsdl so that we can update the service list on-the-fly
+    client = attr.ib(default=Client(wsdl=os.path.join(dir, os.pardir, 'OpcXMLDaServer.asmx'), service_name='OpcXmlDA'))
     subscriptions = attr.ib(default=attr.Factory(dict))
 
     def subscribe_all(self):
@@ -26,6 +29,7 @@ class KukaClient(BaseClient):
         Using a master list of standard variable names, begin subscriptions to all of them.
 
         :return:
+
         """
         raise NotImplementedError
 
@@ -33,7 +37,19 @@ class KukaClient(BaseClient):
         """
 
         Using a master list of standard variable names, end subscriptions to all of them.
+
         :return:
+
+        """
+        raise NotImplementedError
+
+    def get_subscriptions(self):
+        """
+
+        Figure out how to get all subscriptions currently active on server, then return them.
+
+        :return:
+
         """
         raise NotImplementedError
 
@@ -51,6 +67,7 @@ class KukaClient(BaseClient):
         return _status()
 
     def browse(self, item_name='', browse_filter='all', options=None):
+        # todo: conduct browse testing
         """
 
         Browse the elements of the OPC server.
@@ -113,10 +130,10 @@ class KukaClient(BaseClient):
     def subscribe(self, item_name, **kwargs):
         """
 
-        Subscribe to updates on a particular item. Non-polling!
+        Subscribe to updates for a particular item. Implements a loose contract with the server that we will issue
+        follow-up calls to SubscriptionPolledRefresh.
 
         :param item_name:
-        :param server_handle:
         :param element:
         :return:
 
@@ -125,63 +142,53 @@ class KukaClient(BaseClient):
         options = kwargs.get('options', {'ReturnItemTime':True})
         rate = kwargs.get('rate', 5000)
         element = kwargs.get('element', 'RobotVar')
+        connect = kwargs.get('connect', True)
         # todo: determine proper format for MaxAge argument
         max_age = kwargs.get('max_age', 0)
 
         _subscribe = self.client.service.Subscribe
-        response = _subscribe(ReturnValuesOnReply=True, SubscriptionPingRate=rate, Options=options,
-                   ItemList={'Items': {'ItemPath': '', 'ItemName': "{}.{}".format(element, item_name)}})
+        response, handle = None, None
+        if connect:
+            # todo: need to figure out how to wrap these calls in a timeout
+            response = _subscribe(ReturnValuesOnReply=True, SubscriptionPingRate=rate, Options=options,
+                       ItemList={'Items': {'ItemPath': '', 'ItemName': "{}.{}".format(element, item_name)}})
 
-        import json
-        # todo: check for errors here
-        # todo: need to get this laoded into dict for robustness
-        handle = response['ServerSubHandle']
-
-        if not handle:
-            # raise an exception
-            pass
-        else:
+            # todo: get this to work with .get, or wrap in a try for robustness
+            #handle = response.get('ServerSubHandle', None)
+            handle = response['ServerSubHandle']
             self.subscriptions[item_name] = handle
+
         return response, handle
 
-    def polled_subscription(self, **kwargs):
+    def subscription_refresh(self, **kwargs):
         """
 
         Setup a polled subscription to updates on a particular item.
 
-        :param item_name:
-        :param server_handle:
-        :param element:
-        :param options:
         :return:
 
         """
+        # todo: fine-tune options
         options = kwargs.get('options', {'ReturnItemTime':True})
-        element = kwargs.get('element', 'RobotVar')
-        rate = kwargs.get('rate', 5000)
         hold = kwargs.get('hold_time', None)
         wait = kwargs.get('wait', None)
         # todo: determine proper format for MaxAge argument
         max_age = kwargs.get('max_age', 0)
 
-        some_dict = {}
-        subs = self.subscriptions.values()
-        handle_string = ''
-        for sub in subs:
-            handle_string += sub
-        #'Items': {'ItemPath': '', 'ItemName': "{}.{}".format(element, item_name)}}
-
-        # hold time is given in this form...
         #todo: get hold time in this format. Figure out what hold time does, configure as needed.
         hold_time = '2016-10-11T10:31:02.311-07:00'
         _polled_subscription = self.client.service.SubscriptionPolledRefresh
-        results = _polled_subscription(ServerSubHandles=handle_string, Options=options, ReturnAllItems=True, HoldTime=hold, WaitTime=wait)
-        return results
+        results = _polled_subscription(ServerSubHandles=list(self.subscriptions.values()), Options=options, ReturnAllItems=True, HoldTime=hold, WaitTime=wait)
+        response = Response(ResponseTypes.POLLED_SUBSCRIPTION)(results, hostname=self.hostname, polled_refresh=True)
+
+        return  response
+
 
     def subscription_cancel(self, server_sub_handle, client_handle):
+        # todo: test subscription cancellations
         """
 
-        Cancel an existing subscription.
+        Cancel an existing subscription using the appropriate server sub-handle, and client handle.
 
         :param server_sub_handle:
         :param client_handle:

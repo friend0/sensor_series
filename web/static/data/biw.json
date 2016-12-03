@@ -1,0 +1,119 @@
+{
+  "name": "BIW",
+  "children": [
+    {
+      "name": "BIW1",
+      "children": [
+        {
+          "name": "BSL",
+          "children": [
+            {
+              "name": "BSL010",
+              "children": [
+                {
+                  "name": "BSL010RB1",
+                  "size": 3534
+                }
+              ]
+            },
+            {
+              "name": "BSL020",
+              "children": [
+                {
+                  "name": "BSL020RB1",
+                  "size": 5731
+                },
+                {
+                  "name": "BSL020RB2",
+                  "size": 7840
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "BSR",
+          "children": [
+            {
+              "name": "BSR010",
+              "size": 3534
+            },
+            {
+              "name": "BSR020",
+              "size": 5731
+            },
+            {
+              "name": "BSR030",
+              "size": 7840
+            },
+            {
+              "name": "BSR040",
+              "size": 5914
+            },
+            {
+              "name": "BSR050",
+              "size": 3416
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BIW2",
+      "children": [
+        {
+          "name": "BSL",
+          "children": [
+            {
+              "name": "BSL010",
+              "children": [
+                {
+                  "name": "BSL010RB1",
+                  "size": 3534
+                }
+              ]
+            },
+            {
+              "name": "BSL020",
+              "children": [
+                {
+                  "name": "BSL020RB1",
+                  "size": 5731
+                },
+                {
+                  "name": "BSL020RB2",
+                  "size": 7840
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "BSR",
+          "children": [
+            {
+              "name": "BSR010",
+              "size": 3534
+            },
+            {
+              "name": "BSR020",
+              "size": 5731
+            },
+            {
+              "name": "BSR030",
+              "size": 7840
+            },
+            {
+              "name": "BSR040",
+              "size": 5914
+            },
+            {
+              "name": "BSR050",
+              "size": 3416
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
