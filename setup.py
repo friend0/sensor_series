@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="panopticon",
+    name="TeslaOPC",
     # Don't forget to update src/pyocr/pyocr.py:VERSION as well
     # and download_url
     version="0.2.0",

@@ -3,7 +3,7 @@ services:
   panopticon:
     build:
       context: .
-      dockerfile: Dockerfile-panopticon
+      dockerfile: Dockerfile-TeslaOPC
     command: python -u execute.py
    # depends_on:
    # - mongo

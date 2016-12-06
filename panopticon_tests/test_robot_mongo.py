@@ -131,6 +131,7 @@ def test_process_start(robot_mongo):
 def test_zmq_poller(robot_mongo):
     assert True
 
+
 """
 def test_get_last_value(robot_mongo):
     # todo: insert test robot into database, with known var name, last value.

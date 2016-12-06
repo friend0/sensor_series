@@ -1,32 +1,30 @@
-# -*- coding: utf-8 -*-
 import attr
 from gritty_soap.client import Client
 from panopticon.clients.client import BaseClient
 from panopticon.clients.response import Response, ResponseTypes
 import os
 import re
+import io
 
 def format_wsdl(ip):
     formatted_wsdl = ''
-    #map = mmap.mmap(fileno=0, length=2**16)
-    dir = os.path.dirname(os.path.abspath(__file__))
-
-    with open(os.path.join(dir, os.path.realpath('..'), 'opc_xml_da_server_formattable.asmx'), 'r') as f:
+    with open('../panopticon/opc_xml_da_server_formattable.asmx', 'r') as f:
         for idx, line in enumerate(f):
-            match = re.search(r'{ip}', line)
+            match = re.search('\{ip\}', line)
             if match:
                 line = line.format(ip=ip)
             formatted_wsdl = formatted_wsdl + line
-    with open('../opc_temp.wsdl', 'w') as f:
-        for idx, line in enumerate(formatted_wsdl):
-            f.write(line)
+    # todo: figure out how to return some kind of in-memory file object that Client will accept
+    formatted_wsdl = io.BytesIO(formatted_wsdl.encode('utf-8'))
+    return formatted_wsdl
 
 def client_validator(instance, attribute, value):
-    #instance.client = None
-    wsdl = format_wsdl(value)
-    dir = os.path.dirname(os.path.abspath(__file__))
-    # todo: get this to work with some type of in-memory file object
-    client = Client(wsdl='../opc_temp.wsdl', service_name='OpcXmlDA')
+    wsdl = format_wsdl(instance.ip)
+    instance.client = Client(wsdl=wsdl, service_name='OpcXmlDA')
+
+def hostname_validator(instance, attribute, value):
+    # todo: check if the ip has been set; if it has not, check if there is a value given. If not, raise exception.
+    pass
 
 @attr.s
 class KukaClient(BaseClient):
@@ -37,10 +35,9 @@ class KukaClient(BaseClient):
     The OPC XML-DA protocol uses the 'gritty_soap' library for dealing with SOAP requests and replies.
 
     """
-    hostname = attr.ib(default=None)
-    ip = attr.ib(default='127.0.0.1')
-    wsdl = attr.ib(default=None)
-    client = attr.ib(default='172.16.22.101', validator=client_validator)
+    ip = attr.ib()
+    hostname = attr.ib(default=None, validator=None)
+    client = attr.ib(default=None, validator=client_validator)
     subscriptions = attr.ib(default=attr.Factory(dict))
 
     def subscribe_all(self):
