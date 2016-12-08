@@ -78,6 +78,7 @@ class Robot():
     short_name = attr.ib(default = None)
     make = attr.ib(default=None)
     client = attr.ib(default=None, validator= client_init)
+    items = attr.ib(default=attr.Factory(list))
     __server_sub_handles = attr.ib(default=attr.Factory(dict))
 
     def add_subscription(self, item, **kwargs):
@@ -89,6 +90,9 @@ class Robot():
 
         """
 
+        # todo: should have better management of subscriptions than this
+        if item not in self.items:
+            self.items.append(item)
         response, handle = self.client.subscribe(item, **kwargs)
         self.__server_sub_handles[item] = handle
 

@@ -56,7 +56,7 @@ class Response(collections.MutableMapping):
     def status_parser(self):
         raise NotImplementedError
 
-    def subscription_results_parser(self, response, hostname=None, **kwargs):
+    def subscription_results_parser(self, response, start, hostname=None, **kwargs):
         """
 
         The subscription parser is used to convert SOAP responses into python types, then load them into the
@@ -76,6 +76,8 @@ class Response(collections.MutableMapping):
         items = response.RItemList
         self.store['hostname'] = hostname
         self.store['status'], self.store['errors'], self.store['items'] = {}, {}, {}
+        self.store['status']['update_request_time'] = start
+        self.store['status']['update_response_time'] = datetime.now()
         self.store['status']['recv_time'] = self.json_serial(result.RcvTime)
         self.store['status']['reply_time'] = self.json_serial(result.ReplyTime)
         self.store['status']['client_request_handle'] = result.ClientRequestHandle
@@ -89,23 +91,18 @@ class Response(collections.MutableMapping):
             #todo: does the line below ever cause issues?
             # todo: update: I believe we will not detect buffered values returned if we always pull just the first value
             # todo: need to test what our responses look like when we use buffering
-            print(item)
             for item in item.Items:
-                print(item)
                 item_name = item.ItemName
                 item_value = item.Value
                 item_value_type = type(item_value)
-                print("TYPE", item_value_type)
                 self.store['items'].update({item_name: {'diagnostic': item.DiagnosticInfo}})
                 self.store['items'].update({item_name: {'quality': item.Quality}})
                 if 'array' in str(item_value_type).lower():
                     for key, val in item_value.__values__.items():
-                        print("Items {} is an array. It has value {}".format(item_name, {key:val}))
                         self.store['items'].update({item_name: {'type': key, 'value': val}})
                 else:
                     # todo: check if this works correctly
                     self.store['items'].update({item_name: {'type': item_value_type, 'value': item_value}})
-                    print("Item {} is NOT in an array. It has value {}.".format(item_name, item_value))
 
         return self.store
 

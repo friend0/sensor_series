@@ -58,7 +58,7 @@ def get_robots():
 from web import models, views
 @app.route('/', methods=['GET'])
 def home():
-    _items = db
+    #_items = db
     #items = [item for item in _items]
     # return render_template('/base.html')
     return render_template('/home.html')

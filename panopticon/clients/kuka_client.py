@@ -5,10 +5,12 @@ from panopticon.clients.response import Response, ResponseTypes
 import os
 import re
 import io
+import datetime
 
 def format_wsdl(ip):
     formatted_wsdl = ''
-    with open('../panopticon/opc_xml_da_server_formattable.asmx', 'r') as f:
+    xmlda_path = os.path.join('panopticon', 'clients', 'opc_xml_da_server_formattable.asmx')
+    with open(xmlda_path, 'r') as f:
         for idx, line in enumerate(f):
             match = re.search('\{ip\}', line)
             if match:
@@ -195,8 +197,10 @@ class KukaClient(BaseClient):
 
         hold_time = '2016-10-11T10:31:02.311-07:00'
         _polled_subscription = self.client.service.SubscriptionPolledRefresh
+        poll_start_time = datetime.datetime.now()
         results = _polled_subscription(ServerSubHandles=list(self.subscriptions.values()), Options=options, ReturnAllItems=True, HoldTime=hold, WaitTime=wait)
-        response = Response(ResponseTypes.POLLED_SUBSCRIPTION)(results, hostname=self.hostname, polled_refresh=True)
+        response = Response(ResponseTypes.POLLED_SUBSCRIPTION)(results, start = poll_start_time,
+                                                               hostname=self.hostname, polled_refresh=True)
 
         return  response
 

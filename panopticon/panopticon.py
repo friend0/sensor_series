@@ -3,6 +3,7 @@ import uuid
 import multiprocessing
 import zmq
 import panopticon
+import pymongo
 
 __all__ = ['Robot', 'Robots', 'ClientWorker', 'ClientVentilator', 'Panopticon']
 
@@ -46,15 +47,13 @@ class Panopticon(multiprocessing.Process):
         self.control_receiver.setsockopt_string(zmq.SUBSCRIBE, "")
 
         self.workers = {}
-        self.items = items
-        # todo: remove when db load is implemented
-        self.robots = robots
+        self.items = None
+        self.robots = []
         self.ventilator = None
-        self.watch(self.items, **kwargs)
-        self.listen(**kwargs)
 
 
-    def watch(self, items, **kwargs):
+
+    def watch(self, **kwargs):
         """
 
         Starts subscriptions to the given set of robots, for each of the given items.
@@ -68,10 +67,17 @@ class Panopticon(multiprocessing.Process):
 
         """
 
-        for robot_ in self.robots:
-            for item in items:
-                print(item)
-                robot_.add_subscription(item, **kwargs)
+        client = pymongo.MongoClient('10.0.2.2')
+        opc_robots = [robot for robot in client['test_robots']['kuka_robots'].find({'opc': True})]
+
+
+        for robot_ in opc_robots:
+            robot = panopticon.Robot(robot_['hostname'], robot_['ip'])
+            self.robots.append(robot)
+            print(robot_)
+            for item in robot_['items']:
+                robot.add_subscription(item, **kwargs)
+        client.close()
 
     def listen(self, **kwargs):
         """
@@ -93,6 +99,8 @@ class Panopticon(multiprocessing.Process):
             self.workers[id(client_worker)] = client_worker
 
     def start(self):
+        self.watch()
+        self.listen()
         self.learn()
 
     def learn(self):
@@ -106,17 +114,16 @@ class Panopticon(multiprocessing.Process):
 
         """
 
-        print("Panopticon starting workers")
         for key, worker in self.workers.items():
             print(key, worker)
             worker.start()
             print(key, worker)
 
+        # RobotVentilator class broadcasts a heartbeat signal to all workers, indicating when to perform updates
         ventilator = panopticon.RobotVentilator(self.context, self.robots)
 
         while True:
             socks = dict(self.poller.poll())
-
             if socks.get(self.control_receiver) == zmq.POLLIN:
                 control_message = self.control_receiver.recv()
                 if control_message == "FINISHED":

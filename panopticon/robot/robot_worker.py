@@ -2,7 +2,7 @@ import time
 from threading import Thread, Timer
 import msgpack
 import zmq
-
+import datetime
 
 class RobotVentilator:
     """
@@ -18,7 +18,7 @@ class RobotVentilator:
         - Store update intervals at the Robot level, to be read by the worker threads
     """
 
-    def __init__(self, context, robots, interval=3, *args, **kwargs):
+    def __init__(self, context, robots, interval=5, *args, **kwargs):
         self.context = context
         self._timer = None
         self.interval = interval
@@ -93,6 +93,12 @@ class RobotWorker(Thread):
         self.control_receiver.connect("tcp://127.0.0.1:5559")
         time.sleep(1)
 
+    def encode_datetime(obj):
+        import datetime
+        if isinstance(obj, datetime.datetime):
+            return {'__datetime__': True, 'as_str': obj.strftime("%Y%m%dT%H:%M:%S.%f")}
+        return obj
+
     def run(self):
         """
 
@@ -121,12 +127,16 @@ class RobotWorker(Thread):
 
             # If the message came from the ventilator
             if socks.get(self.work_receiver) == zmq.POLLIN:
-                consume = msgpack.unpackb(self.work_receiver.recv())
+                consume_ventilator_message = msgpack.unpackb(self.work_receiver.recv())
                 for host, robot in self.robots.items():
                     returner = robot.subscription_refresh()
-
-                    # self.results_sender.send_multipart([msgpack.packb('update'), msgpack.packb(robot.hostname), msgpack.packb(returner)])
-                    self.results_sender.send(msgpack.packb(returner, use_bin_type=True))
+                    msg_to_mongo = {'update_time_series': {'hostname':robot.hostname,
+                                               'items': returner['items'],
+                                               'recv_time':returner['status']['update_request_time'],
+                                               'reply_time': returner['status']['update_response_time']
+                                               }}
+                    self.results_sender.send(msgpack.packb(msg_to_mongo, default=self.encode_datetime))
+                    # self.results_sender.send(msgpack.packb(returner, use_bin_type=True))
 
                     # todo: start debugging here. Let's see if we can funnel results to the sink.
 
@@ -138,3 +148,8 @@ class RobotWorker(Thread):
                 if control_message == "POISON_PILL":
                     # todo: implement proper cleanup of client worker
                     break
+
+    def encode_datetime(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return {'__datetime__': True, 'as_str': obj.strftime("%Y%m%dT%H:%M:%S.%f")}
+        return obj

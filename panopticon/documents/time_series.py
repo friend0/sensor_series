@@ -2,6 +2,7 @@ import attr
 import datetime
 
 # todo: most of the decode methods are broken/do not reflect current objects.
+# todo: figure out a more sane way to set default time_stamp/value array lengths
 @attr.s
 class TimeSeries():
 
@@ -38,7 +39,7 @@ class Series():
     # Which item are we maintainig a ValueSeries for?
 
     current_segment_id = attr.ib(default=None)
-    current_segment_ptr = attr.ib(default=180)
+    current_segment_ptr = attr.ib(default=160-1)
     first_segment_id = attr.ib(default=None)
 
     last_value = attr.ib(None)

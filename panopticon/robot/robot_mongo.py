@@ -6,6 +6,8 @@ import pymongo
 import zmq
 import uuid
 from panopticon.documents import *
+import collections
+
 
 class RobotMongo(multiprocessing.Process):
     """
@@ -32,42 +34,36 @@ class RobotMongo(multiprocessing.Process):
 
         """
         super(RobotMongo, self).__init__()
+        self.client = None
         self.context = None
         self.poller = None
         self.context = None
         self._db = db
         self.collection = collection
         self.operations = []
-
+        self.functions = {'update_time_series': self.update_time_series}
         """
         todo: update the last value cache on each query. On updates, we can check against this cache - if an entry
         exists, we will only trigger an update if the data has changed. This saves us db write throughput.
         """
-        self.last_value_cache = {}
+        self.last_value_cache = dict()
         # todo: find a less brittle solution for pinging the host?
 
-        # 10.0.2.2 is something that vBox sets up for access to host.
-        # Do lazy connect to guard against problems induced by calls to 'fork'
-
-        if host is None:
-            self.client = pymongo.MongoClient(host='10.0.2.2', connect=False)
-        else:
-            self.client = pymongo.MongoClient(host=host, connect=False)
-
-        existing_databases = set(self.client.database_names())
+        #existing_databases = set(self.client.database_names())
         # todo: refactor robots to robots_db
-        self.robots = self.client.robots_db
+        #self.robots = self.client.robots_db
         # todo: refactor time_series to time_series_db
-        self.time_series = self.client.time_series_db
-        self.values = self.client.value_segment_db
+        #self.time_series = self.client.time_series_db
+        #self.values = self.client.value_segment_db
 
 
-        self.databases = {'robots': self.robots, 'time_series':self.time_series}
+        #self.databases = {'robots': self.robots, 'time_series':self.time_series}
         # todo: for debug purposes. Heres how to find out if a db exists already. Remove for production.
-        for key, val in self.databases.items():
-            print("Database '{}' exists? {}".format(key, key in existing_databases))
+        #for key, val in self.databases.items():
+        #    print("Database '{}' exists? {}".format(key, key in existing_databases))
 
-        # todo: if robots database does not exist, first populate it with base data
+        # todo: if robots database does not exist, first populate it with
+        # base data
 
     def get_opc_robots(self):
         """
@@ -86,7 +82,6 @@ class RobotMongo(multiprocessing.Process):
 
         :return:
         """
-
         time_series_set = self.client['time_series_set']
         value_segments = self.client['value_segments_db']
 
@@ -162,7 +157,7 @@ class RobotMongo(multiprocessing.Process):
         return robot_series['series']['last_value']
 
     # todo: implement a cached version of this function which takes advantage of BulkUpdate speed increase
-    def update_time_series(self, polled_subscription_response=None, **kwargs):
+    def update_time_series(self, **kwargs):
         """
 
         TimeSeries documents are tuned to store updates where the values are singular.
@@ -175,39 +170,43 @@ class RobotMongo(multiprocessing.Process):
         time_series_set = self.client['time_series_set']
         value_db = self.client['value_segments_db']
 
-        if not polled_subscription_response:
-            robot_hostname = kwargs.get('robot_hostname')
-            items_values = kwargs.get('items_values')
-
-            if not (robot_hostname and items_values) or not isinstance(items_values, dict):
-                raise ValueError("Update of time series requires a polled_subscription_response, "
-                                 "or robot hostname, and a dictionary of item/value pairs")
-        else:
-            # Unwrap necessary data from polled subscription response
-            robot_hostname = polled_subscription_response['hostname']
-            items_values = {key:val['value'] for key, val in polled_subscription_response['items'].items()}
+        print(kwargs)
+        # Unwrap necessary data from polled subscription response
+        robot_hostname = kwargs.get('hostname')
+        items_values = {key:val['value'] for key, val in kwargs.get('items').items()}
+        time = kwargs.get('reply_time')
 
         for item, value in items_values.items():
-            robot_series = time_series_set.kuka_robots.find_one_and_update(
-                {'_id': '{}.{}'.format(robot_hostname, item)},
-                {'$set': {'series.last_value': value},
-                 '$currentDate': {'series.last_time': True},
-                 '$inc': {'series.current_segment_ptr': -1}},
-                projection={'_id': 0, "series.current_segment_ptr": 1, "series.current_segment_id": 1}
-            )
-            current_segment_ptr = robot_series['series']['current_segment_ptr']
-            current_segment_id = robot_series['series']['current_segment_id']
 
-            value_db.kuka_robots.update_one(
-                {'_id': current_segment_id},
-                {'$set': {'segment.times.{}'.format(current_segment_ptr): datetime.datetime.now(),
-                          'segment.values.{}'.format(current_segment_ptr): value}}
-            )
-            if current_segment_ptr <= 0:
-                self.create_new_segment(robot_hostname, value, item)
+            item = item.split('.')[1]
+            if isinstance(value, list):
+                value = value[0]
 
+            last_value = self.last_value_cache.get('{}.{}'.format(robot_hostname, item), None)
+            if  last_value != value:
+                print("New value detected for {}: {}".format(robot_hostname, value))
+                self.last_value_cache['{}.{}'.format(robot_hostname, item)] = value
+                # todo: need to add 'first_time' to the series document so we know the span of time right off the bat
+                robot_series = time_series_set.kuka_robots.find_one_and_update(
+                    {'_id': '{}.{}'.format(robot_hostname, item)},
+                    {'$set': {'series.last_value': value},
+                     '$currentDate': {'series.last_time': True},
+                     '$inc': {'series.current_segment_ptr': -1}},
+                    projection={'_id': 0, "series.current_segment_ptr": 1, "series.current_segment_id": 1}
+                )
+                current_segment_ptr = robot_series['series']['current_segment_ptr']
+                current_segment_id = robot_series['series']['current_segment_id']
 
-        #value_db.kuka_robots.bulk_write(operations, ordered=True)
+                # todo: updating of 'last_time' is not currently done; fix!
+                value_db.kuka_robots.update_one(
+                    {'_id': current_segment_id},
+                    {'$set': {'segment.times.{}'.format(current_segment_ptr): datetime.datetime.now(),
+                              'segment.values.{}'.format(current_segment_ptr): value}}
+                )
+                if current_segment_ptr <= 0:
+                    self.create_new_segment(robot_hostname, value, item)
+            else:
+                print('No new value, db not updated.', '<--', robot_hostname)
 
     def create_new_segment(self, robot_hostname, value, item):
         time_series_set = self.client['time_series_set']
@@ -219,7 +218,7 @@ class RobotMongo(multiprocessing.Process):
         time_series_set.kuka_robots.update_one(
             {'_id': '{}.{}'.format(robot_hostname, item)},
             {'$set': {'series.current_segment_id': segment_id, 'series.last_time': datetime.datetime.now(),
-                      'series.current_segment_ptr': 180}}
+                      'series.current_segment_ptr': 160}}
         )
         value_db.kuka_robots.update_one(
             {'_id': segment_id},
@@ -274,6 +273,21 @@ class RobotMongo(multiprocessing.Process):
         value_db = self.client['value_segments_db']
         value_db.kuka_robots.bulk_write(self.operations, ordered=True)
 
+    def convert(self, dictionary):
+        """Recursively converts dictionary keys to strings."""
+
+        if not isinstance(dictionary, dict):
+            if isinstance(dictionary, (bytes, bytearray)):
+                return dictionary.decode('utf-8')
+            if isinstance(dictionary, datetime.datetime):
+                return dictionary
+            return dictionary
+        else:
+            if b'__datetime__' in dictionary:
+                dictionary = dict((k.decode('utf-8'), self.convert(v)) for k, v in dictionary.items())
+                return datetime.datetime.strptime(dictionary["as_str"], "%Y%m%dT%H:%M:%S.%f")
+            return dict((k.decode('utf-8'), self.convert(v)) for k, v in dictionary.items())
+
     def run(self):
         """
 
@@ -283,6 +297,12 @@ class RobotMongo(multiprocessing.Process):
         :return:
 
         """
+
+        # 10.0.2.2 is something that vBox sets up for access to host.
+        # Do lazy connect to guard against problems induced by calls to 'fork'
+
+        self.client = pymongo.MongoClient(host='10.0.2.2', connect=False)
+        self.instantiate_series()
 
         # Initialize a zeromq context for this process. MUST occur in run function.
         self.context = zmq.Context()
@@ -300,15 +320,14 @@ class RobotMongo(multiprocessing.Process):
             socks = dict(self.poller.poll())
 
             if socks.get(self.results_receiver) == zmq.POLLIN:
-                msg = msgpack.unpackb(self.results_receiver.recv(), encoding='utf-8')
-                multipart = self.results_receiver.recv_multipart()
-                instruction = multipart[0]
+                #msg = msgpack.unpackb(self.results_receiver.recv(), encoding='utf-8')
+                multipart = msgpack.unpackb(self.results_receiver.recv())
+                multipart = self.convert(multipart)
 
-                msg = dict(msg)
-                # todo: implement version with send/receive multipart to support calls to db client api.
-
-
-                self.update_time_series(msg)
+                for function, args in multipart.items():
+                    print("ARGS---------", args)
+                    self.functions[function](**args)
+                #self.update_time_series(msg)
                 # msg = self.results_receiver.recv_multipart()
 
 

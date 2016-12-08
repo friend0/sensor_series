@@ -22,15 +22,15 @@ def test_create_test_db(robot_mongo):
     test_robots.kuka_robots.insert_one(
         {
             "hostname": "BIW1-BPL010RB1",
-            "items": ['var1', 'var2', 'var3', 'var4', 'var5', 'var6', 'var7','var8', 'var9', 'var10'],
+            "items": ['EGWearInitialHistory'],
             "opc": True,
         }
     )
 
     test_robots.kuka_robots.insert_one(
         {
-            "hostname": "BIW1-BPO010RB1",
-            "items": ['var1', 'var2', 'var3', 'var4', 'var5', 'var6', 'var7','var8', 'var9', 'var10'],
+            "hostname": "BIW1-DSH010RB1",
+            "items": ['EGWearInitialHistory'],
             "opc": True,
         }
     )
