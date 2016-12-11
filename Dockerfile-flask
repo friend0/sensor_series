@@ -1,5 +1,5 @@
 FROM continuumio/miniconda3:latest
-MAINTAINER Ryan Rodriguez <ryarodriguez@tesla.com>
+MAINTAINER Ryan Rodriguez <"ryarodriguez@gmail.com">
 
 ADD ./environment.yml environment.yml
 

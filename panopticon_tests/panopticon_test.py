@@ -11,6 +11,4 @@ panpotic = Panopticon(context, robots=robots)
 panpotic.watch(['TipDressCounter'])
 panpotic.learn()
 
-#TeslaOPC.watch(robots, ['TipDressCounter'], loud=True)
-#TeslaOPC.listen(robots)
 
